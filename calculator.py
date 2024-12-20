@@ -4,6 +4,7 @@ current_value = 0  # Текущее число
 current_operation = None
 new_number = True  # Флаг для определения, когда начинать ввод нового числа
 
+
 def calculate():
     global current_value, current_operation
     try:
@@ -22,6 +23,7 @@ def calculate():
         entry_var.set(str(current_value))
     except ValueError:
         entry_var.set("Ошибка")
+
 
 def press(key):
     global current_value, current_operation, new_number
@@ -43,6 +45,19 @@ def press(key):
         current_operation = key
         operator_var.set(f"Текущая операция: {key}")
         new_number = True
+    elif key == "1/x":
+        try:
+            result = 1 / float(entry_var.get())
+            entry_var.set(str(result))
+        except ValueError:
+            entry_var.set("Ошибка")
+        except ZeroDivisionError:
+            entry_var.set("Деление на 0")
+    elif key == "<-":
+        if len(entry_var.get()) == 1:
+            entry_var.set("0")
+        else:
+            entry_var.set(entry_var.get()[:-1])
     elif key == "=":
         if current_operation:
             calculate()
@@ -81,7 +96,11 @@ def press(key):
             if "." not in entry_var.get():
                 entry_var.set(entry_var.get() + ".")
         else:
-            entry_var.set(entry_var.get() + key)
+            if entry_var.get() == '0':
+                entry_var.set(key)
+            else:
+                entry_var.set(entry_var.get() + key)
+
 
 root = tk.Tk()
 root.title("Калькулятор")
@@ -96,18 +115,18 @@ operator_label = tk.Label(root, textvariable=operator_var, font=("Arial", 12), a
 operator_label.grid(row=1, column=0, columnspan=4, sticky="nsew")
 
 buttons = [
-    ("7", "lightgray"), ("8", "lightgray"), ("9", "lightgray"), ("\u00f7", "orange"),
-    ("4", "lightgray"), ("5", "lightgray"), ("6", "lightgray"), ("\u00d7", "orange"),
-    ("1", "lightgray"), ("2", "lightgray"), ("3", "lightgray"), ("-", "orange"),
-    ("C", "red"), ("0", "lightgray"), (",", "lightgray"), ("+", "orange"),
-    ("\u221a", "lightblue"), ("x²", "lightblue"), ("\u00b1", "lightblue"), ("%", "lightblue"),
-    ("CE", "red"), ("=", "green")
+    ("%", "lightblue"), ("CE", "lightblue"), ("C", "lightblue"), ("<-", "lightblue"),
+    ("1/x", "lightblue"), ("x²", "lightblue"), ("\u221a", "lightblue"), ("\u00f7", "lightblue"),
+    ("1", "lightgray"), ("2", "lightgray"), ("3", "lightgray"), ("\u00d7", "lightblue"),
+    ("4", "lightgray"), ("5", "lightgray"), ("6", "lightgray"), ("+", "lightblue"),
+    ("7", "lightgray"), ("8", "lightgray"), ("9", "lightgray"), ("-", "lightblue"),
+    ("\u00b1", "lightblue"), ("0", "lightgray"), (",", "lightblue"), ("=", "blue")
 ]
 
 for i, (btn, color) in enumerate(buttons):
     action = lambda key=btn: press(key)
     tk.Button(
-        root, text=btn, command=action, font=("Arial", 18), bg=color, fg="white"
+        root, text=btn, command=action, font=("Arial", 18), bg=color, fg="black"
     ).grid(row=2 + i // 4, column=i % 4, sticky="nsew")
 
 for i in range(4):
