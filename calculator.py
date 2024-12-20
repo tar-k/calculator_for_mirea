@@ -1,28 +1,29 @@
 import tkinter as tk
-import operator
-
-# Словарь операций
-operations = {
-    "+": operator.add,
-    "-": operator.sub,
-    "×": operator.mul,
-    "÷": operator.truediv
-}
 
 def calculate(expression):
-    """Обрабатывает математическое выражение без eval."""
+    """Обрабатывает математическое выражение вручную."""
     try:
         tokens = expression.split()
         if len(tokens) < 3:
             return "Ошибка"
-        
+
         left = float(tokens[0])
         op = tokens[1]
         right = float(tokens[2])
-        
-        if op in operations:
-            return operations[op](left, right)
-        return "Ошибка"
+
+        if op == "+":
+            return left + right
+        elif op == "-":
+            return left - right
+        elif op == "×":
+            return left * right
+        elif op == "÷":
+            if right != 0:
+                return left / right
+            else:
+                return "Деление на 0"
+        else:
+            return "Ошибка"
     except Exception:
         return "Ошибка"
 
@@ -34,7 +35,7 @@ def press(key):
         result = calculate(entry_var.get())
         entry_var.set(result)
     else:
-        entry_var.set(entry_var.get() + (" " if key in operations else "") + key + (" " if key in operations else ""))
+        entry_var.set(entry_var.get() + (" " if key in "+-×÷" else "") + key + (" " if key in "+-×÷" else ""))
 
 # Создаем главное окно
 root = tk.Tk()
