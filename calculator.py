@@ -1,41 +1,54 @@
 import tkinter as tk
 
-def calculate(expression):
-    """Обрабатывает математическое выражение вручную."""
+# Глобальные переменные для состояния
+current_value = 0  # Текущее число
+current_operation = None  # Текущая операция (например, "+", "-", и т.д.)
+
+def calculate():
+    """Выполняет текущую операцию."""
+    global current_value, current_operation
     try:
-        tokens = expression.split()
-        if len(tokens) < 3:
-            return "Ошибка"
-
-        left = float(tokens[0])
-        op = tokens[1]
-        right = float(tokens[2])
-
-        if op == "+":
-            return left + right
-        elif op == "-":
-            return left - right
-        elif op == "×":
-            return left * right
-        elif op == "÷":
-            if right != 0:
-                return left / right
+        if current_operation == "+":
+            current_value += float(entry_var.get())
+        elif current_operation == "-":
+            current_value -= float(entry_var.get())
+        elif current_operation == "×":
+            current_value *= float(entry_var.get())
+        elif current_operation == "÷":
+            if float(entry_var.get()) != 0:
+                current_value /= float(entry_var.get())
             else:
-                return "Деление на 0"
-        else:
-            return "Ошибка"
-    except Exception:
-        return "Ошибка"
+                entry_var.set("Деление на 0")
+                return
+        entry_var.set(str(current_value))
+    except ValueError:
+        entry_var.set("Ошибка")
 
 def press(key):
     """Обработка нажатия кнопок."""
+    global current_value, current_operation
+
     if key == "C":
+        # Сброс всех значений
+        current_value = 0
+        current_operation = None
+        entry_var.set("")
+    elif key in "+-×÷":
+        # Сохраняем текущее значение и операцию
+        if current_operation:
+            calculate()
+        else:
+            current_value = float(entry_var.get())
+        current_operation = key
         entry_var.set("")
     elif key == "=":
-        result = calculate(entry_var.get())
-        entry_var.set(result)
+        # Выполняем вычисление и сбрасываем операцию
+        if current_operation:
+            calculate()
+            current_operation = None
     else:
-        entry_var.set(entry_var.get() + (" " if key in "+-×÷" else "") + key + (" " if key in "+-×÷" else ""))
+        # Набираем числа
+        entry_var.set(entry_var.get() + key)
 
 # Создаем главное окно
 root = tk.Tk()
