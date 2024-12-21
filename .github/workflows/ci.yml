@@ -36,7 +36,7 @@ jobs:
       - name: Build Windows executable with PyInstaller
         run: |
           pip install pyinstaller
-          pyinstaller --onefile main.py
+          pyinstaller --onefile calculator.py
           
       # Шаг 6: Копирование собранного исполняемого файла в папку 'install'
       - name: Copy executable to install folder
@@ -46,11 +46,11 @@ jobs:
 
 
       # Шаг 7: Пушим собранный файл в репозиторий
-      - name: Push main.exe to the 'install' folder
+      - name: Push calculator.exe to the 'install' folder
         run: |
           git config --global user.name "tar-k"
           git config --global user.email "tararakakirill@gmail.com"
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git add install/main.exe
-          git commit -m "Создан main.exe в папке install" || echo "No changes to commit"
+          git add install/calculator.exe
+          git commit -m "Создан calculator.exe в папке install" || echo "No changes to commit"
           git push origin HEAD:main
