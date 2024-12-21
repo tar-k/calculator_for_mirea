@@ -42,7 +42,7 @@ jobs:
       - name: Copy executable to install folder
         run: |
           if (-not (Test-Path install)) { New-Item -ItemType Directory -Force -Path install }
-          copy dist\main.exe install\
+          copy dist\calculator.exe install\
 
 
       # Шаг 7: Пушим собранный файл в репозиторий
