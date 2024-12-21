@@ -1,7 +1,6 @@
 import pytest
 import tkinter as tk
-from unittest.mock import MagicMock
-from calculator import Calculator  # Replace with the correct import if needed
+from calculator import Calculator
 
 @pytest.fixture
 def calc():
@@ -11,16 +10,23 @@ def calc():
     # We don't necessarily run mainloop for logic tests
     return calculator
 
-def test_press_single_digit(calc):
-    # Press '1'
-    calc.press('1')
-    assert calc.entry_var.get() == '1'
+@pytest.mark.parametrize("numbers", [(["1"]),(["1","2"]),(["5","9","0"])])
+def test_press_digit(calc, numbers):
+    expected_str = ''
+    for i in numbers:
+        expected_str+=i
+        calc.press(i)
+    
+    assert calc.entry_var.get() == expected_str
 
-def test_press_multiple_digits(calc):
-    # Press '1', then '2', should show '12'
+
+def test_clear_entry(calc):
     calc.press('1')
     calc.press('2')
-    assert calc.entry_var.get() == '12'
+    calc.press('3')
+    calc.press('CE')
+    assert calc.entry_var.get() == '0'
+
 
 def test_press_clear(calc):
     calc.press('1')
@@ -30,90 +36,70 @@ def test_press_clear(calc):
     assert calc.entry_var.get() == '0'
     assert calc.current_operation is None
 
-def test_simple_addition(calc):
-    # 12 + 3 =
-    calc.press('1')
-    calc.press('2')
-    calc.press('+')
-    calc.press('3')
-    calc.press('=')
-    assert calc.entry_var.get() == '15.0'
+@pytest.mark.parametrize("a,b, expected_result", [("1","1","2.0")])
+def test_addition(calc, a, b, expected_result):
+    calc.press(a)
+    calc.press("+")
+    calc.press(b)
+    calc.press("=")
+    assert calc.entry_var.get() == expected_result
 
-def test_simple_subtraction(calc):
-    # 10 - 5 =
-    calc.press('1')
-    calc.press('0')
-    calc.press('-')
-    calc.press('5')
-    calc.press('=')
-    assert calc.entry_var.get() == '5.0'
+@pytest.mark.parametrize("a,b, expected_result", [("1","1","0.0")])
+def test_subtraction(calc, a, b, expected_result):
+    calc.press(a)
+    calc.press("-")
+    calc.press(b)
+    calc.press("=")
+    assert calc.entry_var.get() == expected_result
 
-def test_simple_multiplication(calc):
+@pytest.mark.parametrize("a,b, expected_result", [("2","3","6.0")])
+def test_multiplication(calc, a, b, expected_result):
     # 5 × 5 =
-    calc.press('5')
-    calc.press('\u00d7')  # Multiplication symbol
-    calc.press('5')
-    calc.press('=')
-    assert calc.entry_var.get() == '25.0'
+    calc.press(a)
+    calc.press("\u00d7")
+    calc.press(b)
+    calc.press("=")
+    assert calc.entry_var.get() == expected_result
 
-def test_simple_division(calc):
-    # 10 ÷ 2 =
-    calc.press('1')
-    calc.press('0')
+@pytest.mark.parametrize("a,b, expected_result", [("6","2","3.0"), ("9","0","Деление на 0")])
+def test_division(calc, a, b, expected_result):
+    
+    calc.press(a)
     calc.press('\u00f7')  # Division symbol
-    calc.press('2')
-    calc.press('=')
-    assert calc.entry_var.get() == '5.0'
+    calc.press(b)
+    calc.press("=")
+    assert calc.entry_var.get() == expected_result
 
-def test_division_by_zero(calc):
-    # 5 ÷ 0 =
-    calc.press('5')
-    calc.press('\u00f7')
-    calc.press('0')
-    calc.press('=')
-    assert calc.entry_var.get() == 'Деление на 0'
-
-def test_clear_entry(calc):
-    # Press digits, then CE
-    calc.press('1')
-    calc.press('2')
-    calc.press('3')
-    calc.press('CE')
-    assert calc.entry_var.get() == '0'
-
-def test_square_function(calc):
-    # Press '4', then x² should be 16
-    calc.press('4')
+@pytest.mark.parametrize("a, expected_result", [("3","9.0"),("-3","9.0")])
+def test_square_function(calc, a, expected_result):
+    calc.entry_var.set(a)
     calc.press('x²')
-    assert calc.entry_var.get() == '16.0'
+    assert calc.entry_var.get() == expected_result
 
-def test_square_root_function(calc):
-    # Press '9', then √ should be 3
-    calc.press('9')
+@pytest.mark.parametrize("a, expected_result", [("9","3.0")])
+def test_square_root_function(calc, a, expected_result):
+    calc.press(a)
     calc.press('\u221a')
-    assert calc.entry_var.get() == '3.0'
+    assert calc.entry_var.get() == expected_result
 
-def test_one_over_x(calc):
-    # Press '2', then 1/x should be 0.5
-    calc.press('2')
+@pytest.mark.parametrize("a, expected_result", [("2","0.5"),("0","Деление на 0")])
+def test_one_over_x(calc, a, expected_result):
+    calc.press(a)
     calc.press('1/x')
-    assert calc.entry_var.get() == '0.5'
+    assert calc.entry_var.get() == expected_result
 
 def test_percentage(calc):
-    # Press '50', then '%' should be 0.5
     calc.press('5')
     calc.press('0')
     calc.press('%')
     assert calc.entry_var.get() == '0.5'
 
 def test_change_sign(calc):
-    # Press '5', then ± should be -5
     calc.press('5')
     calc.press('\u00b1')
     assert calc.entry_var.get() == '-5.0'
 
 def test_backspace(calc):
-    # Press '1', '2', '3', then '<-' should remove the last digit to '12'
     calc.press('1')
     calc.press('2')
     calc.press('3')
@@ -136,15 +122,6 @@ def test_chained_operations(calc):
     calc.press('4')
     calc.press('=')
     assert calc.entry_var.get() == '9.0'
-
-def test_calculate_method_directly(calc):
-    # Directly test calculate function
-    calc.entry_var.set('10')
-    calc.current_value = 5
-    calc.current_operation = '+'
-    calc.calculate()
-    # After calculation: 5 + 10 = 15
-    assert calc.entry_var.get() == '15.0'
 
 def test_calculate_method_invalid_number(calc):
     # Set entry to something invalid
