@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:  # Запускать на каждый коммит
+    branches:
+      - '**'  # Все ветки
+  pull_request:  # Также запускать на создание pull request в ветку main
+    branches:
+      - main  # Для PR в ветку main
+
+jobs:
+  build:
+    runs-on: windows-latest  # Используем последнюю версию Windows для выполнения
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  
+
+      # Шаг 2: Настроим Python окружение
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Шаг 3: Установим зависимости
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Шаг 4: Запуск unit-тестов
+      - name: Run unit tests
+        run: |
+          python -m pytest test.py
+
+      # Шаг 5: Сборка Windows исполнимого файла с PyInstaller
+      - name: Build Windows executable with PyInstaller
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile main.py
+          
+      # Шаг 6: Копирование собранного исполняемого файла в папку 'install'
+      - name: Copy executable to install folder
+        run: |
+          if (-not (Test-Path install)) { New-Item -ItemType Directory -Force -Path install }
+          copy dist\main.exe install\
+
+
+      # Шаг 7: Пушим собранный файл в репозиторий
+      - name: Push main.exe to the 'install' folder
+        run: |
+          git config --global user.name "tar-k"
+          git config --global user.email "tararakakirill@gmail.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
+          git add install/main.exe
+          git commit -m "Создан main.exe в папке install" || echo "No changes to commit"
+          git push origin HEAD:main
