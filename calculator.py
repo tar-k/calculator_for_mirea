@@ -1,5 +1,5 @@
 import tkinter as tk
-
+# Некий комментарий
 class Calculator:
     def __init__(self, master):
         self.master = master
