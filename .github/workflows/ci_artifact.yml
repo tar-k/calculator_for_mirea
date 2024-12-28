@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:  # Запускать на каждый коммит
+    branches:
+      - '**'  # Все ветки
+  pull_request:  # Также запускать на создание pull request в ветку main
+    branches:
+      - main  # Для PR в ветку main
+
+jobs:
+  build:
+    runs-on: windows-latest  # Используем последнюю версию Windows для выполнения
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  
+
+      # Шаг 2: Настроим Python окружение
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # Шаг 3: Установим зависимости
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Шаг 4: Запуск unit-тестов
+      - name: Run unit tests
+        run: |
+          python -m pytest test.py
+
+      # Шаг 5: Сборка Windows исполнимого файла с PyInstaller
+      - name: Build Windows executable with PyInstaller
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile calculator.py
+          
+      # Шаг 6: Загрузка исполняемого файла как артефакт
+      - name: Upload executable as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: calculator-exe
+          path: dist/calculator.exe
